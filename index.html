@@ -1,31 +1,31 @@
-#include <WiFi.h>
-#include <FirebaseESP32.h>
-#include <DHT.h>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Smart Bin Dashboard</title>
+  <style>
+    body { font-family: Arial; text-align: center; }
+    .card { border: 1px solid #ccc; padding: 20px; margin: 20px; display: inline-block; }
+  </style>
+</head>
+<body>
+  <h1>Smart Bin Dashboard</h1>
+  <div class="card">
+    <h2>Temperature</h2>
+    <p id="temp">Loading...</p>
+  </div>
+  <div class="card">
+    <h2>Humidity</h2>
+    <p id="hum">Loading...</p>
+  </div>
 
-#define DHTPIN 4
-#define DHTTYPE DHT11
-DHT dht(DHTPIN, DHTTYPE);
-
-const char* ssid = "YOUR_WIFI_SSID";
-const char* password = "YOUR_WIFI_PASSWORD";
-#define FIREBASE_HOST "your-project.firebaseio.com"
-#define FIREBASE_AUTH "your-database-secret"
-
-FirebaseData firebaseData;
-
-void setup() {
-  Serial.begin(115200);
-  WiFi.begin(ssid, password);
-  Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
-  dht.begin();
-}
-
-void loop() {
-  float temp = dht.readTemperature();
-  float hum = dht.readHumidity();
-
-  Firebase.setFloat(firebaseData, "/smartbin/temperature", temp);
-  Firebase.setFloat(firebaseData, "/smartbin/humidity", hum);
-
-  delay(5000);
-}
+  <script>
+    async function fetchData() {
+      const res = await fetch('data.json'); // Replace with actual path
+      const data = await res.json();
+      document.getElementById('temp').innerText = data.temperature + " °C";
+      document.getElementById('hum').innerText = data.humidity + " %";
+    }
+    setInterval(fetchData, 5000);
+  </script>
+</body>
+</html>
