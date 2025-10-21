@@ -2,9 +2,12 @@
 <html>
 <head>
   <title>Smart Bin Dashboard</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <style>
-    body { font-family: Arial; text-align: center; }
-    .card { border: 1px solid #ccc; padding: 20px; margin: 20px; display: inline-block; }
+    body { font-family: Arial; background: #f0f4f8; text-align: center; }
+    .card { background: white; padding: 20px; margin: 20px; border-radius: 10px; box-shadow: 0 0 10px #ccc; display: inline-block; }
+    h1 { color: #2c3e50; }
   </style>
 </head>
 <body>
@@ -19,13 +22,25 @@
   </div>
 
   <script>
-    async function fetchData() {
-      const res = await fetch('data.json'); // Replace with actual path
-      const data = await res.json();
-      document.getElementById('temp').innerText = data.temperature + " °C";
-      document.getElementById('hum').innerText = data.humidity + " %";
-    }
-    setInterval(fetchData, 5000);
+    var firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+      projectId: "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.database();
+
+    db.ref("smartbin/temperature").on("value", function(snapshot) {
+      document.getElementById("temp").innerText = snapshot.val() + " °C";
+    });
+
+    db.ref("smartbin/humidity").on("value", function(snapshot) {
+      document.getElementById("hum").innerText = snapshot.val() + " %";
+    });
   </script>
 </body>
 </html>
