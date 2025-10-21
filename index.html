@@ -47,11 +47,34 @@
       margin: 10px 0;
       font-weight: bold;
     }
+    input[type="text"] {
+      padding: 10px;
+      width: 80%;
+      border: none;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #ee0979;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #ff6a00;
+    }
   </style>
 </head>
 <body>
   <h1>♻️ Smart Bin Dashboard</h1>
   <div class="dashboard">
+    <div class="card">
+      <h2><i class="fas fa-keyboard"></i> Enter Bin Number</h2>
+      <input type="text" id="binInput" placeholder="e.g. Bin1" />
+      <button onclick="updateBin()">Set Bin</button>
+    </div>
     <div class="card">
       <h2><i class="fas fa-recycle"></i> Waste Type</h2>
       <p id="wasteType">Loading...</p>
@@ -94,6 +117,13 @@
     };
     firebase.initializeApp(firebaseConfig);
     var db = firebase.database();
+
+    function updateBin() {
+      const binNum = document.getElementById("binInput").value;
+      if (binNum) {
+        db.ref("smartbin/binNumber").set(binNum);
+      }
+    }
 
     const fields = ["wasteType", "sortStatus", "compostTemp", "compostHum", "wasteCount", "alertMsg", "systemStatus"];
     fields.forEach(field => {
