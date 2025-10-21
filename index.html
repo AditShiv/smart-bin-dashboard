@@ -1,45 +1,100 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Smart Bin Dashboard</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    body { font-family: Arial; background: #f0f4f8; text-align: center; }
-    .card { background: white; padding: 20px; margin: 20px; border-radius: 10px; box-shadow: 0 0 10px #ccc; display: inline-block; }
-    h1 { color: #2c3e50; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 30px;
+    }
+    .dashboard {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      width: 250px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .card h2 {
+      margin-top: 0;
+      font-size: 1.2em;
+      color: #34495e;
+    }
+    .card p {
+      font-size: 1.5em;
+      margin: 10px 0;
+      color: #2c3e50;
+    }
   </style>
 </head>
 <body>
-  <h1>Smart Bin Dashboard</h1>
-  <div class="card">
-    <h2>Temperature</h2>
-    <p id="temp">Loading...</p>
-  </div>
-  <div class="card">
-    <h2>Humidity</h2>
-    <p id="hum">Loading...</p>
+  <h1>♻️ Smart Bin Dashboard</h1>
+  <div class="dashboard">
+    <div class="card">
+      <h2><i class="fas fa-recycle"></i> Waste Type</h2>
+      <p id="wasteType">Loading...</p>
+    </div>
+    <div class="card">
+      <h2><i class="fas fa-box-open"></i> Sorting Status</h2>
+      <p id="sortStatus">Loading...</p>
+    </div>
+    <div class="card">
+      <h2><i class="fas fa-thermometer-half"></i> Compost Temp</h2>
+      <p id="compostTemp">Loading...</p>
+    </div>
+    <div class="card">
+      <h2><i class="fas fa-tint"></i> Compost Humidity</h2>
+      <p id="compostHum">Loading...</p>
+    </div>
+    <div class="card">
+      <h2><i class="fas fa-dumpster"></i> Waste Count</h2>
+      <p id="wasteCount">Loading...</p>
+    </div>
+    <div class="card">
+      <h2><i class="fas fa-exclamation-triangle"></i> Alerts</h2>
+      <p id="alertMsg">None</p>
+    </div>
+    <div class="card">
+      <h2><i class="fas fa-signal"></i> System Status</h2>
+      <p id="systemStatus">Loading...</p>
+    </div>
   </div>
 
   <script>
     var firebaseConfig = {
       apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-      projectId: "YOUR_PROJECT",
-      storageBucket: "YOUR_PROJECT.appspot.com",
+      authDomain: "swscs-ab98d.firebaseapp.com",
+      databaseURL: "https://swscs-ab98d-default-rtdb.firebaseio.com",
+      projectId: "swscs-ab98d",
+      storageBucket: "swscs-ab98d.appspot.com",
       messagingSenderId: "YOUR_SENDER_ID",
       appId: "YOUR_APP_ID"
     };
     firebase.initializeApp(firebaseConfig);
     var db = firebase.database();
 
-    db.ref("smartbin/temperature").on("value", function(snapshot) {
-      document.getElementById("temp").innerText = snapshot.val() + " °C";
-    });
-
-    db.ref("smartbin/humidity").on("value", function(snapshot) {
-      document.getElementById("hum").innerText = snapshot.val() + " %";
+    const fields = ["wasteType", "sortStatus", "compostTemp", "compostHum", "wasteCount", "alertMsg", "systemStatus"];
+    fields.forEach(field => {
+      db.ref("smartbin/" + field).on("value", snapshot => {
+        document.getElementById(field).innerText = snapshot.val();
+      });
     });
   </script>
 </body>
