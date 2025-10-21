@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Smart Bin Dashboard</title>
+  <style>
+    body { font-family: Arial; text-align: center; }
+    .card { border: 1px solid #ccc; padding: 20px; margin: 20px; display: inline-block; }
+  </style>
+</head>
+<body>
+  <h1>Smart Bin Dashboard</h1>
+  <div class="card">
+    <h2>Temperature</h2>
+    <p id="temp">Loading...</p>
+  </div>
+  <div class="card">
+    <h2>Humidity</h2>
+    <p id="hum">Loading...</p>
+  </div>
+
+  <script>
+    async function fetchData() {
+      const res = await fetch('data.json'); // Replace with actual path
+      const data = await res.json();
+      document.getElementById('temp').innerText = data.temperature + " °C";
+      document.getElementById('hum').innerText = data.humidity + " %";
+    }
+    setInterval(fetchData, 5000);
+  </script>
+</body>
+</html>
