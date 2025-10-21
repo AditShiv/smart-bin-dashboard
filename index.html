@@ -8,12 +8,15 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    html, body {
+    body {
       margin: 0;
       padding: 0;
-      height: 100%;
+      min-height: 100vh;
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(135deg, #ff6a00, #ee0979);
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-size: cover;
       color: #fff;
       text-align: center;
     }
@@ -47,34 +50,37 @@
       margin: 10px 0;
       font-weight: bold;
     }
-    input[type="text"] {
-      padding: 10px;
+    .bin-list {
+      margin-top: 40px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 12px;
       width: 80%;
-      border: none;
-      border-radius: 6px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      color: #2c3e50;
+    }
+    .bin-list h2 {
       margin-bottom: 10px;
     }
-    button {
-      padding: 10px 20px;
-      background-color: #ee0979;
-      color: white;
-      border: none;
+    select {
+      padding: 10px;
+      font-size: 1em;
       border-radius: 6px;
-      cursor: pointer;
+      border: none;
+      margin-top: 10px;
     }
-    button:hover {
-      background-color: #ff6a00;
+    #binStatus {
+      margin-top: 20px;
+      font-size: 1.2em;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <h1>♻️ Smart Bin Dashboard</h1>
   <div class="dashboard">
-    <div class="card">
-      <h2><i class="fas fa-keyboard"></i> Enter Bin Number</h2>
-      <input type="text" id="binInput" placeholder="e.g. Bin1" />
-      <button onclick="updateBin()">Set Bin</button>
-    </div>
     <div class="card">
       <h2><i class="fas fa-recycle"></i> Waste Type</h2>
       <p id="wasteType">Loading...</p>
@@ -105,6 +111,14 @@
     </div>
   </div>
 
+  <div class="bin-list">
+    <h2>🗂️ Select a Bin</h2>
+    <select id="binSelect" onchange="selectBin()">
+      <option value="">-- Choose Bin --</option>
+    </select>
+    <div id="binStatus"></div>
+  </div>
+
   <script>
     var firebaseConfig = {
       apiKey: "YOUR_API_KEY",
@@ -118,19 +132,49 @@
     firebase.initializeApp(firebaseConfig);
     var db = firebase.database();
 
-    function updateBin() {
-      const binNum = document.getElementById("binInput").value;
-      if (binNum) {
-        db.ref("smartbin/binNumber").set(binNum);
-      }
+    const fields = ["wasteType", "sortStatus", "compostTemp", "compostHum", "wasteCount", "alertMsg", "systemStatus"];
+
+    function updateCards() {
+      fields.forEach(field => {
+        db.ref("smartbin/" + field).once("value").then(snapshot => {
+          document.getElementById(field).innerText = snapshot.val();
+        });
+      });
     }
 
-    const fields = ["wasteType", "sortStatus", "compostTemp", "compostHum", "wasteCount", "alertMsg", "systemStatus"];
-    fields.forEach(field => {
-      db.ref("smartbin/" + field).on("value", snapshot => {
-        document.getElementById(field).innerText = snapshot.val();
-      });
+    updateCards();
+    setInterval(updateCards, 5000);
+
+    db.ref("smartbin/activeBins").on("value", snapshot => {
+      const binSelect = document.getElementById("binSelect");
+      const binStatus = document.getElementById("binStatus");
+
+      binSelect.innerHTML = '<option value="">-- Choose Bin --</option>';
+      binStatus.innerText = "";
+
+      const bins = snapshot.val();
+      if (bins && typeof bins === "object") {
+        const binArray = Array.isArray(bins) ? bins : Object.values(bins);
+        binArray.forEach(bin => {
+          const option = document.createElement("option");
+          option.value = bin;
+          option.textContent = bin;
+          binSelect.appendChild(option);
+        });
+      }
     });
+
+    function selectBin() {
+      const selectedBin = document.getElementById("binSelect").value;
+      if (selectedBin) {
+        db.ref("smartbin/selectedBin").set(selectedBin);
+        db.ref("smartbin/" + selectedBin + "/status").once("value").then(snapshot => {
+          document.getElementById("binStatus").innerText = "Status: " + snapshot.val();
+        });
+      } else {
+        document.getElementById("binStatus").innerText = "";
+      }
+    }
   </script>
 </body>
 </html>
