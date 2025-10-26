@@ -8,6 +8,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
+    /* Your original styling preserved */
     body {
       margin: 0;
       padding: 0;
@@ -81,34 +82,13 @@
 <body>
   <h1>♻️ Smart Bin Dashboard</h1>
   <div class="dashboard">
-    <div class="card">
-      <h2><i class="fas fa-recycle"></i> Waste Type</h2>
-      <p id="wasteType">Loading...</p>
-    </div>
-    <div class="card">
-      <h2><i class="fas fa-box-open"></i> Sorting Status</h2>
-      <p id="sortStatus">Loading...</p>
-    </div>
-    <div class="card">
-      <h2><i class="fas fa-thermometer-half"></i> Compost Temp</h2>
-      <p id="compostTemp">Loading...</p>
-    </div>
-    <div class="card">
-      <h2><i class="fas fa-tint"></i> Compost Humidity</h2>
-      <p id="compostHum">Loading...</p>
-    </div>
-    <div class="card">
-      <h2><i class="fas fa-dumpster"></i> Waste Count</h2>
-      <p id="wasteCount">Loading...</p>
-    </div>
-    <div class="card">
-      <h2><i class="fas fa-exclamation-triangle"></i> Alerts</h2>
-      <p id="alertMsg">None</p>
-    </div>
-    <div class="card">
-      <h2><i class="fas fa-signal"></i> System Status</h2>
-      <p id="systemStatus">Loading...</p>
-    </div>
+    <div class="card"><h2><i class="fas fa-recycle"></i> Waste Type</h2><p id="wasteType">Loading...</p></div>
+    <div class="card"><h2><i class="fas fa-box-open"></i> Sorting Status</h2><p id="sortStatus">Loading...</p></div>
+    <div class="card"><h2><i class="fas fa-thermometer-half"></i> Compost Temp</h2><p id="compostTemp">Loading...</p></div>
+    <div class="card"><h2><i class="fas fa-tint"></i> Compost Humidity</h2><p id="compostHum">Loading...</p></div>
+    <div class="card"><h2><i class="fas fa-dumpster"></i> Waste Count</h2><p id="wasteCount">Loading...</p></div>
+    <div class="card"><h2><i class="fas fa-exclamation-triangle"></i> Alerts</h2><p id="alertMsg">None</p></div>
+    <div class="card"><h2><i class="fas fa-signal"></i> System Status</h2><p id="systemStatus">Loading...</p></div>
   </div>
 
   <div class="bin-list">
@@ -137,7 +117,7 @@
     function updateCards() {
       fields.forEach(field => {
         db.ref("smartbin/" + field).once("value").then(snapshot => {
-          document.getElementById(field).innerText = snapshot.val();
+          document.getElementById(field).innerText = snapshot.val() || "N/A";
         });
       });
     }
@@ -154,22 +134,21 @@
 
       const bins = snapshot.val();
       if (bins && typeof bins === "object") {
-        const binArray = Array.isArray(bins) ? bins : Object.values(bins);
-        binArray.forEach(bin => {
+        Object.entries(bins).forEach(([key, name]) => {
           const option = document.createElement("option");
-          option.value = bin;
-          option.textContent = bin;
+          option.value = key;
+          option.textContent = name;
           binSelect.appendChild(option);
         });
       }
     });
 
     function selectBin() {
-      const selectedBin = document.getElementById("binSelect").value;
-      if (selectedBin) {
-        db.ref("smartbin/selectedBin").set(selectedBin);
-        db.ref("smartbin/" + selectedBin + "/status").once("value").then(snapshot => {
-          document.getElementById("binStatus").innerText = "Status: " + snapshot.val();
+      const selectedKey = document.getElementById("binSelect").value;
+      if (selectedKey) {
+        db.ref("smartbin/selectedBin").set(selectedKey);
+        db.ref("smartbin/" + selectedKey + "/status").once("value").then(snapshot => {
+          document.getElementById("binStatus").innerText = "Status: " + (snapshot.val() || "Unknown");
         });
       } else {
         document.getElementById("binStatus").innerText = "";
