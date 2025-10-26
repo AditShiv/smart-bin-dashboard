@@ -75,24 +75,20 @@
   <h1>♻️ Smart Bin Dashboard</h1>
   <div class="dashboard">
     <div class="card">
-      <h2><i class="fas fa-barcode"></i> Number of Scans</h2>
+      <h2><i class="fas fa-barcode"></i> Total Scans</h2>
       <p id="scanCount">Loading...</p>
     </div>
     <div class="card">
-      <h2><i class="fas fa-arrow-right"></i> Items to Bin A</h2>
-      <p id="binAcount">Loading...</p>
+      <h2><i class="fas fa-tv"></i> E-Waste Count</h2>
+      <p id="eWasteCount">Loading...</p>
     </div>
     <div class="card">
-      <h2><i class="fas fa-arrow-left"></i> Items to Bin B</h2>
-      <p id="binBcount">Loading...</p>
+      <h2><i class="fas fa-bottle-water"></i> Plastic Count</h2>
+      <p id="plasticCount">Loading...</p>
     </div>
     <div class="card">
-      <h2><i class="fas fa-ruler-vertical"></i> Fill Level Bin A</h2>
-      <p id="fillA">Loading...</p>
-    </div>
-    <div class="card">
-      <h2><i class="fas fa-ruler-vertical"></i> Fill Level Bin B</h2>
-      <p id="fillB">Loading...</p>
+      <h2><i class="fas fa-trash"></i> General Waste Count</h2>
+      <p id="generalCount">Loading...</p>
     </div>
     <div class="card">
       <h2><i class="fas fa-signal"></i> System Status</h2>
@@ -123,17 +119,14 @@
       db.ref("smartbin/scanCount").once("value").then(snapshot => {
         document.getElementById("scanCount").innerText = snapshot.val() || "0";
       });
-      db.ref("smartbin/binAcount").once("value").then(snapshot => {
-        document.getElementById("binAcount").innerText = snapshot.val() || "0";
+      db.ref("smartbin/eWasteCount").once("value").then(snapshot => {
+        document.getElementById("eWasteCount").innerText = snapshot.val() || "0";
       });
-      db.ref("smartbin/binBcount").once("value").then(snapshot => {
-        document.getElementById("binBcount").innerText = snapshot.val() || "0";
+      db.ref("smartbin/plasticCount").once("value").then(snapshot => {
+        document.getElementById("plasticCount").innerText = snapshot.val() || "0";
       });
-      db.ref("smartbin/fillA").once("value").then(snapshot => {
-        document.getElementById("fillA").innerText = snapshot.val() + " cm" || "N/A";
-      });
-      db.ref("smartbin/fillB").once("value").then(snapshot => {
-        document.getElementById("fillB").innerText = snapshot.val() + " cm" || "N/A";
+      db.ref("smartbin/generalCount").once("value").then(snapshot => {
+        document.getElementById("generalCount").innerText = snapshot.val() || "0";
       });
       db.ref("smartbin/systemStatus").once("value").then(snapshot => {
         document.getElementById("systemStatus").innerText = snapshot.val() || "Offline";
