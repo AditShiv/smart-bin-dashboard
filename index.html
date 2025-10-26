@@ -128,34 +128,38 @@
       db.ref("smartbin/generalCount").once("value").then(snapshot => {
         document.getElementById("generalCount").innerText = snapshot.val() || "0";
       });
-      db.ref("smartbin/systemStatus").once("value").then(snapshot => {
-        document.getElementById("systemStatus").innerText = snapshot.val() || "Offline";
-      });
     }
 
-    function updateActiveBin() {
-      db.ref("smartbin/selectedBin").on("value", snapshot => {
-        const selectedKey = snapshot.val();
-        const activeBinName = document.getElementById("activeBinName");
-        const binStatus = document.getElementById("binStatus");
+    function checkESPStatus() {
+      db.ref("smartbin/lastUpdate").once("value").then(snapshot => {
+        const lastUpdate = snapshot.val();
+        const now = Math.floor(Date.now() / 1000);
+        const isOnline = lastUpdate && (now - lastUpdate < 10);
+        document.getElementById("systemStatus").innerText = isOnline ? "Online" : "Offline";
 
-        if (selectedKey) {
-          db.ref("smartbin/activeBins/" + selectedKey).once("value").then(nameSnap => {
-            activeBinName.innerText = nameSnap.val() || selectedKey;
-          });
-          db.ref("smartbin/" + selectedKey + "/status").once("value").then(statusSnap => {
-            binStatus.innerText = "Status: " + (statusSnap.val() || "Unknown");
+        if (isOnline) {
+          db.ref("smartbin/selectedBin").once("value").then(binSnap => {
+            const selectedBin = binSnap.val();
+            db.ref("smartbin/activeBins/" + selectedBin).once("value").then(nameSnap => {
+              document.getElementById("activeBinName").innerText = nameSnap.val() || selectedBin;
+            });
+            db.ref("smartbin/" + selectedBin + "/status").once("value").then(statusSnap => {
+              document.getElementById("binStatus").innerText = "Status: " + (statusSnap.val() || "Unknown");
+            });
           });
         } else {
-          activeBinName.innerText = "No bin selected";
-          binStatus.innerText = "";
+          document.getElementById("activeBinName").innerText = "ESP Offline";
+          document.getElementById("binStatus").innerText = "Status: Inactive";
         }
       });
     }
 
     updateDashboard();
-    updateActiveBin();
-    setInterval(updateDashboard, 5000);
+    checkESPStatus();
+    setInterval(() => {
+      updateDashboard();
+      checkESPStatus();
+    }, 5000);
   </script>
 </body>
 </html>
