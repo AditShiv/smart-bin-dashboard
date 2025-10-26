@@ -8,7 +8,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    /* Your original styling preserved */
     body {
       margin: 0;
       padding: 0;
@@ -65,13 +64,6 @@
     .bin-list h2 {
       margin-bottom: 10px;
     }
-    select {
-      padding: 10px;
-      font-size: 1em;
-      border-radius: 6px;
-      border: none;
-      margin-top: 10px;
-    }
     #binStatus {
       margin-top: 20px;
       font-size: 1.2em;
@@ -82,20 +74,35 @@
 <body>
   <h1>♻️ Smart Bin Dashboard</h1>
   <div class="dashboard">
-    <div class="card"><h2><i class="fas fa-recycle"></i> Waste Type</h2><p id="wasteType">Loading...</p></div>
-    <div class="card"><h2><i class="fas fa-box-open"></i> Sorting Status</h2><p id="sortStatus">Loading...</p></div>
-    <div class="card"><h2><i class="fas fa-thermometer-half"></i> Compost Temp</h2><p id="compostTemp">Loading...</p></div>
-    <div class="card"><h2><i class="fas fa-tint"></i> Compost Humidity</h2><p id="compostHum">Loading...</p></div>
-    <div class="card"><h2><i class="fas fa-dumpster"></i> Waste Count</h2><p id="wasteCount">Loading...</p></div>
-    <div class="card"><h2><i class="fas fa-exclamation-triangle"></i> Alerts</h2><p id="alertMsg">None</p></div>
-    <div class="card"><h2><i class="fas fa-signal"></i> System Status</h2><p id="systemStatus">Loading...</p></div>
+    <div class="card">
+      <h2><i class="fas fa-barcode"></i> Number of Scans</h2>
+      <p id="scanCount">Loading...</p>
+    </div>
+    <div class="card">
+      <h2><i class="fas fa-arrow-right"></i> Items to Bin A</h2>
+      <p id="binAcount">Loading...</p>
+    </div>
+    <div class="card">
+      <h2><i class="fas fa-arrow-left"></i> Items to Bin B</h2>
+      <p id="binBcount">Loading...</p>
+    </div>
+    <div class="card">
+      <h2><i class="fas fa-ruler-vertical"></i> Fill Level Bin A</h2>
+      <p id="fillA">Loading...</p>
+    </div>
+    <div class="card">
+      <h2><i class="fas fa-ruler-vertical"></i> Fill Level Bin B</h2>
+      <p id="fillB">Loading...</p>
+    </div>
+    <div class="card">
+      <h2><i class="fas fa-signal"></i> System Status</h2>
+      <p id="systemStatus">Loading...</p>
+    </div>
   </div>
 
   <div class="bin-list">
-    <h2>🗂️ Select a Bin</h2>
-    <select id="binSelect" onchange="selectBin()">
-      <option value="">-- Choose Bin --</option>
-    </select>
+    <h2>🗂️ Active Bin</h2>
+    <p id="activeBinName">Loading...</p>
     <div id="binStatus"></div>
   </div>
 
@@ -112,48 +119,50 @@
     firebase.initializeApp(firebaseConfig);
     var db = firebase.database();
 
-    const fields = ["wasteType", "sortStatus", "compostTemp", "compostHum", "wasteCount", "alertMsg", "systemStatus"];
-
-    function updateCards() {
-      fields.forEach(field => {
-        db.ref("smartbin/" + field).once("value").then(snapshot => {
-          document.getElementById(field).innerText = snapshot.val() || "N/A";
-        });
+    function updateDashboard() {
+      db.ref("smartbin/scanCount").once("value").then(snapshot => {
+        document.getElementById("scanCount").innerText = snapshot.val() || "0";
+      });
+      db.ref("smartbin/binAcount").once("value").then(snapshot => {
+        document.getElementById("binAcount").innerText = snapshot.val() || "0";
+      });
+      db.ref("smartbin/binBcount").once("value").then(snapshot => {
+        document.getElementById("binBcount").innerText = snapshot.val() || "0";
+      });
+      db.ref("smartbin/fillA").once("value").then(snapshot => {
+        document.getElementById("fillA").innerText = snapshot.val() + " cm" || "N/A";
+      });
+      db.ref("smartbin/fillB").once("value").then(snapshot => {
+        document.getElementById("fillB").innerText = snapshot.val() + " cm" || "N/A";
+      });
+      db.ref("smartbin/systemStatus").once("value").then(snapshot => {
+        document.getElementById("systemStatus").innerText = snapshot.val() || "Offline";
       });
     }
 
-    updateCards();
-    setInterval(updateCards, 5000);
+    function updateActiveBin() {
+      db.ref("smartbin/selectedBin").on("value", snapshot => {
+        const selectedKey = snapshot.val();
+        const activeBinName = document.getElementById("activeBinName");
+        const binStatus = document.getElementById("binStatus");
 
-    db.ref("smartbin/activeBins").on("value", snapshot => {
-      const binSelect = document.getElementById("binSelect");
-      const binStatus = document.getElementById("binStatus");
-
-      binSelect.innerHTML = '<option value="">-- Choose Bin --</option>';
-      binStatus.innerText = "";
-
-      const bins = snapshot.val();
-      if (bins && typeof bins === "object") {
-        Object.entries(bins).forEach(([key, name]) => {
-          const option = document.createElement("option");
-          option.value = key;
-          option.textContent = name;
-          binSelect.appendChild(option);
-        });
-      }
-    });
-
-    function selectBin() {
-      const selectedKey = document.getElementById("binSelect").value;
-      if (selectedKey) {
-        db.ref("smartbin/selectedBin").set(selectedKey);
-        db.ref("smartbin/" + selectedKey + "/status").once("value").then(snapshot => {
-          document.getElementById("binStatus").innerText = "Status: " + (snapshot.val() || "Unknown");
-        });
-      } else {
-        document.getElementById("binStatus").innerText = "";
-      }
+        if (selectedKey) {
+          db.ref("smartbin/activeBins/" + selectedKey).once("value").then(nameSnap => {
+            activeBinName.innerText = nameSnap.val() || selectedKey;
+          });
+          db.ref("smartbin/" + selectedKey + "/status").once("value").then(statusSnap => {
+            binStatus.innerText = "Status: " + (statusSnap.val() || "Unknown");
+          });
+        } else {
+          activeBinName.innerText = "No bin selected";
+          binStatus.innerText = "";
+        }
+      });
     }
+
+    updateDashboard();
+    updateActiveBin();
+    setInterval(updateDashboard, 5000);
   </script>
 </body>
 </html>
